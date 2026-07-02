@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新体操大会 エントリーシステム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2b2440;        /* 墨紫:基本テキスト */
+  --ink-soft:#6d668a;   /* 補助テキスト */
+  --ribbon:#c4457e;     /* リボンマゼンタ:アクセント */
+  --ribbon-deep:#8f2c5b;
+  --teal:#1d8a78;       /* 確定・成功 */
+  --bg:#f6f4f9;         /* 薄藤色の背景 */
+  --card:#ffffff;
+  --line:#e5e1ee;
+  --danger:#c0392b;
+  --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Zen Kaku Gothic New",system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);
+  font-size:15px;line-height:1.7;
+  min-height:100vh;
+}
+.serif{font-family:"Zen Old Mincho",serif}
+
+/* ---------- ヘッダー ---------- */
+header{
+  background:var(--ink);color:#fff;position:relative;overflow:hidden;
+  padding:20px 20px 16px;
+}
+header svg.ribbon{position:absolute;right:-30px;top:-20px;width:220px;opacity:.5;pointer-events:none}
+header h1{font-size:17px;font-weight:700;letter-spacing:.06em;position:relative}
+header .sub{font-size:12px;color:#cfc8e6;letter-spacing:.12em;position:relative}
+header .orgname{font-size:12px;margin-top:6px;color:#efc9dc;position:relative}
+
+/* ---------- タブナビ ---------- */
+nav{
+  display:flex;background:var(--card);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:20;
+}
+nav button{
+  flex:1;padding:12px 4px 10px;background:none;border:none;cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:500;color:var(--ink-soft);
+  border-bottom:3px solid transparent;position:relative;
+}
+nav button.active{color:var(--ribbon-deep);border-bottom-color:var(--ribbon);font-weight:700}
+nav button .badge{
+  position:absolute;top:6px;right:calc(50% - 26px);
+  width:8px;height:8px;border-radius:50%;background:var(--ribbon);
+}
+nav button:focus-visible{outline:2px solid var(--ribbon);outline-offset:-2px}
+
+main{max-width:640px;margin:0 auto;padding:20px 16px 80px}
+
+/* ---------- カード・共通 ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.card h2{font-size:16px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.card h2::before{content:"";width:4px;height:18px;background:var(--ribbon);border-radius:2px}
+.muted{color:var(--ink-soft);font-size:13px}
+.small{font-size:12.5px}
+
+label{display:block;font-size:13px;font-weight:500;margin:12px 0 4px;color:var(--ink)}
+input,select{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+  font-family:inherit;font-size:15px;background:#fff;color:var(--ink);
+}
+input:focus,select:focus{outline:2px solid var(--ribbon);outline-offset:1px;border-color:var(--ribbon)}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:12px 18px;border:none;border-radius:10px;cursor:pointer;
+  font-family:inherit;font-size:15px;font-weight:700;width:100%;margin-top:16px;
+  background:var(--ribbon);color:#fff;transition:filter .15s;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:focus-visible{outline:3px solid var(--ribbon-deep);outline-offset:2px}
+.btn:disabled{background:#cfc8dd;cursor:not-allowed}
+.btn.ghost{background:none;color:var(--ribbon-deep);border:1px solid var(--line);font-weight:500}
+.btn.teal{background:var(--teal)}
+.btn.slim{width:auto;padding:8px 14px;font-size:13px;margin-top:0}
+.btn.danger-ghost{background:none;color:var(--danger);border:1px solid var(--line);width:auto;padding:6px 12px;font-size:12.5px;margin-top:0;font-weight:500}
+
+.list-item{
+  display:flex;align-items:center;gap:10px;padding:12px 2px;
+  border-bottom:1px solid var(--line);
+}
+.list-item:last-child{border-bottom:none}
+.list-item .grow{flex:1;min-width:0}
+.list-item .name{font-weight:700;font-size:15px}
+.pill{
+  display:inline-block;padding:1px 9px;border-radius:99px;font-size:11.5px;font-weight:500;
+  background:#f1ecf7;color:var(--ink-soft);margin-right:6px;
+}
+.pill.cat{background:#fbe9f2;color:var(--ribbon-deep)}
+.pill.on{background:#e2f3ef;color:var(--teal);font-weight:700}
+
+/* トグル */
+.toggle{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:12.5px;color:var(--ink-soft);flex-shrink:0}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle .track{width:40px;height:22px;border-radius:11px;background:#d8d3e4;position:relative;transition:background .2s;flex-shrink:0}
+.toggle .track::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.toggle input:checked + .track{background:var(--teal)}
+.toggle input:checked + .track::after{transform:translateX(18px)}
+.toggle input:focus-visible + .track{outline:2px solid var(--ribbon);outline-offset:2px}
+
+.checkline{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px dashed var(--line);font-size:14px}
+.checkline:last-child{border-bottom:none}
+.checkline input[type=checkbox]{width:20px;height:20px;accent-color:var(--ribbon);flex-shrink:0}
+.checkline .g{color:var(--ink-soft);font-size:12px;margin-left:auto;flex-shrink:0}
+
+/* 金額 */
+.fee-box{
+  border:2px solid var(--ribbon);border-radius:var(--radius);
+  padding:16px;text-align:center;margin:14px 0;background:#fdf7fa;
+}
+.fee-box .yen{font-family:"Zen Old Mincho",serif;font-size:34px;font-weight:700;color:var(--ribbon-deep);line-height:1.2}
+.fee-box .formula{font-size:12.5px;color:var(--ink-soft);margin-top:4px}
+
+.banner{
+  border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;font-weight:500;
+}
+.banner.lock{background:#e2f3ef;color:var(--teal);border:1px solid #bfe4dc}
+.banner.warn{background:#fdf3e7;color:#9a6b1f;border:1px solid #f0dcbb}
+
+/* 通知 */
+.notice{padding:12px 2px;border-bottom:1px solid var(--line)}
+.notice:last-child{border-bottom:none}
+.notice .t{font-size:11.5px;color:var(--ink-soft)}
+.notice .m{font-size:14px}
+.notice.unread .m{font-weight:700}
+.notice.unread .m::before{content:"●";color:var(--ribbon);font-size:9px;margin-right:6px;vertical-align:2px}
+
+/* 振込先 */
+.bank{border:1px dashed var(--ribbon);border-radius:10px;padding:14px;background:#fdf7fa;margin-top:10px}
+.bank dt{font-size:11.5px;color:var(--ink-soft);margin-top:8px}
+.bank dt:first-child{margin-top:0}
+.bank dd{font-size:15px;font-weight:700;letter-spacing:.04em}
+
+/* トースト */
+#toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:11px 20px;border-radius:99px;
+  font-size:13.5px;opacity:0;pointer-events:none;transition:all .25s;z-index:99;
+  max-width:90vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ログイン画面 */
+.gate{max-width:420px;margin:0 auto;padding:28px 20px 60px}
+.gate .logo{text-align:center;margin-bottom:20px}
+.gate .logo .serif{font-size:24px;font-weight:700;letter-spacing:.1em}
+.gate .logo .en{font-size:11px;letter-spacing:.35em;color:var(--ribbon);font-weight:500}
+.gate-switch{text-align:center;margin-top:14px}
+.gate-switch button{background:none;border:none;color:var(--ribbon-deep);font-family:inherit;font-size:13px;cursor:pointer;text-decoration:underline}
+.err{color:var(--danger);font-size:13px;margin-top:10px;min-height:1em}
+
+.hidden{display:none !important}
+.step-note{font-size:12.5px;color:var(--ink-soft);background:#f1ecf7;border-radius:8px;padding:8px 12px;margin-bottom:12px}
+.demo-tag{
+  position:fixed;top:8px;right:8px;z-index:50;background:#fff;border:1px solid var(--ribbon);
+  color:var(--ribbon-deep);font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:99px;letter-spacing:.08em;
+}
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<div class="demo-tag">モック動作中</div>
+
+<!-- ============ ログイン / 登録 ============ -->
+<div id="screen-gate" class="gate">
+  <div class="logo" style="margin-top:24px">
+    <svg width="72" height="44" viewBox="0 0 72 44" aria-hidden="true"><path d="M4 36 C 20 6, 34 44, 48 16 S 66 20, 70 6" fill="none" stroke="#c4457e" stroke-width="3.5" stroke-linecap="round"/></svg>
+    <div class="serif">新体操大会</div>
+    <div class="en">ENTRY SYSTEM</div>
+  </div>
+
+  <div class="card" id="gate-login">
+    <h2>ログイン</h2>
+    <label for="li-email">メールアドレス</label>
+    <input id="li-email" type="email" autocomplete="username" placeholder="demo@example.com">
+    <label for="li-pass">パスワード</label>
+    <input id="li-pass" type="password" autocomplete="current-password" placeholder="demo1234">
+    <div class="err" id="li-err"></div>
+    <button class="btn" onclick="doLogin()">ログイン</button>
+    <div class="gate-switch">
+      <button onclick="switchGate('reg')">新規登録(所属アカウント作成)</button><br>
+      <button onclick="doReset()" style="margin-top:6px">パスワードを忘れた場合</button>
+    </div>
+    <p class="muted small" style="margin-top:14px;text-align:center">
+      デモ用: demo@example.com / demo1234
+    </p>
+  </div>
+
+  <div class="card hidden" id="gate-reg">
+    <h2>所属アカウント登録</h2>
+    <p class="muted small">大会要項に記載の「大会コード」が必要です。(デモ: RG2026)</p>
+    <label for="rg-code">大会コード</label>
+    <input id="rg-code" placeholder="RG2026">
+    <label for="rg-org">団体名</label>
+    <input id="rg-org" placeholder="○○新体操クラブ">
+    <label for="rg-rep">代表者名</label>
+    <input id="rg-rep" placeholder="山田 花子">
+    <label for="rg-email">メールアドレス</label>
+    <input id="rg-email" type="email" autocomplete="username">
+    <label for="rg-pass">パスワード(8文字以上)</label>
+    <input id="rg-pass" type="password" autocomplete="new-password">
+    <div class="err" id="rg-err"></div>
+    <button class="btn" onclick="doRegister()">登録する</button>
+    <div class="gate-switch"><button onclick="switchGate('login')">ログインに戻る</button></div>
+  </div>
+</div>
+
+<!-- ============ アプリ本体 ============ -->
+<div id="screen-app" class="hidden">
+  <header>
+    <svg class="ribbon" viewBox="0 0 220 140" aria-hidden="true"><path d="M0 120 C 50 20, 90 150, 140 50 S 210 60, 230 0" fill="none" stroke="#c4457e" stroke-width="10" stroke-linecap="round"/></svg>
+    <div class="sub">RHYTHMIC GYMNASTICS ENTRY</div>
+    <h1>新体操大会 エントリー</h1>
+    <div class="orgname" id="hd-org"></div>
+  </header>
+
+  <nav aria-label="メインメニュー">
+    <button id="tab-players" onclick="go('players')">選手登録</button>
+    <button id="tab-teams" onclick="go('teams')">団体</button>
+    <button id="tab-confirm" onclick="go('confirm')">確認・確定</button>
+    <button id="tab-mypage" onclick="go('mypage')">マイページ<span class="badge hidden" id="notice-badge"></span></button>
+  </nav>
+
+  <main>
+    <div class="banner lock hidden" id="lock-banner">
+      エントリーは確定済みです。内容の変更が必要な場合は大会事務局までご連絡ください。
+    </div>
+
+    <!-- ===== 選手登録 ===== -->
+    <section id="view-players" class="hidden">
+      <div class="step-note">① 選手を登録し、個人種目に出場する選手は「個人出場」をオンにしてください。種目はカテゴリごとに大会側で指定されています。</div>
+      <div class="card" id="player-form-card">
+        <h2>選手を追加</h2>
+        <label for="pl-name">氏名</label>
+        <input id="pl-name" placeholder="佐藤 美咲">
+        <label for="pl-kana">フリガナ</label>
+        <input id="pl-kana" placeholder="サトウ ミサキ">
+        <label for="pl-grade">学年</label>
+        <select id="pl-grade"></select>
+        <p class="muted small" id="pl-cat-preview" style="margin-top:8px"></p>
+        <button class="btn" onclick="addPlayer()">選手を追加</button>
+      </div>
+      <div class="card">
+        <h2>登録済み選手 <span class="muted small" id="pl-count"></span></h2>
+        <div id="player-list"></div>
+      </div>
+    </section>
+
+    <!-- ===== 団体 ===== -->
+    <section id="view-teams" class="hidden">
+      <div class="step-note">② 団体種目に出場するチームを作成します。メンバーはカテゴリの学年範囲に合う選手から選べます。</div>
+      <div class="card" id="team-form-card">
+        <h2>チームを作成</h2>
+        <label for="tm-name">チーム名</label>
+        <input id="tm-name" placeholder="○○クラブA">
+        <label for="tm-cat">カテゴリ</label>
+        <select id="tm-cat" onchange="renderTeamMemberPicker()"></select>
+        <label>出場メンバー <span class="muted small" id="tm-rule"></span></label>
+        <div id="tm-members"></div>
+        <button class="btn" onclick="addTeam()">チームを登録</button>
+      </div>
+      <div class="card">
+        <h2>登録済みチーム</h2>
+        <div id="team-list"></div>
+      </div>
+    </section>
+
+    <!-- ===== 確認・確定 ===== -->
+    <section id="view-confirm" class="hidden">
+      <div class="step-note">③ 内容を確認して「エントリーを確定」を押すと、参加費が確定し事務局へ送信されます。確定後は変更できません。</div>
+      <div class="card">
+        <h2>エントリー内容</h2>
+        <div id="confirm-summary"></div>
+        <div class="fee-box">
+          <div class="muted small">参加費(お見積り)</div>
+          <div class="yen" id="fee-amount">¥0</div>
+          <div class="formula" id="fee-formula"></div>
+        </div>
+        <button class="btn teal" id="confirm-btn" onclick="confirmEntry()">エントリーを確定する</button>
+        <p class="muted small" style="margin-top:10px">確定すると、確定金額と振込先のご案内をマイページとメールでお知らせします。</p>
+      </div>
+    </section>
+
+    <!-- ===== マイページ ===== -->
+    <section id="view-mypage" class="hidden">
+      <div class="card" id="mypage-status"></div>
+      <div class="card">
+        <h2>お知らせ</h2>
+        <div id="notice-list"></div>
+      </div>
+      <div class="card">
+        <h2>アカウント</h2>
+        <p class="small muted" id="mp-account"></p>
+        <label for="cp-pass">新しいパスワード</label>
+        <input id="cp-pass" type="password" autocomplete="new-password">
+        <button class="btn ghost" onclick="changePassword()">パスワードを変更</button>
+        <button class="btn ghost" onclick="logout()" style="margin-top:10px">ログアウト</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+/* =========================================================
+   接続設定
+   本番接続時は MOCK を false にし、GAS_URL にWebアプリの
+   デプロイURLを設定するだけで切り替わります。
+   ========================================================= */
+const CONFIG = {
+  MOCK: true,
+  GAS_URL: 'https://script.google.com/macros/s/XXXXXXXX/exec'
+};
+
+/* ---------- 学年マスタ(0=園児 〜 13=一般) ---------- */
+const GRADES = [
+  {v:0,label:'園児'},{v:1,label:'小1'},{v:2,label:'小2'},{v:3,label:'小3'},
+  {v:4,label:'小4'},{v:5,label:'小5'},{v:6,label:'小6'},{v:7,label:'中1'},
+  {v:8,label:'中2'},{v:9,label:'中3'},{v:10,label:'高1'},{v:11,label:'高2'},
+  {v:12,label:'高3'},{v:13,label:'一般'}
+];
+const gradeLabel = v => (GRADES.find(g=>g.v===v)||{}).label || '?';
+
+/* =========================================================
+   モックDB(本番ではスプレッドシートに相当)
+   ========================================================= */
+const mockDB = {
+  settings: {
+    eventCode: 'RG2026',
+    feePerPlayer: 3000,
+    deadline: '2026-08-31',
+    payDeadline: '2026-09-15',
+    bank: { name:'○○銀行', branch:'△△支店', type:'普通', number:'1234567', holder:'シンタイソウタイカイジッコウイインカイ' }
+  },
+  categories: [
+    { id:'C1', name:'チャイルド', gmin:0,  gmax:2,  events:'徒手',   tmin:3, tmax:6 },
+    { id:'C2', name:'ジュニアC', gmin:3,  gmax:4,  events:'フープ', tmin:5, tmax:6 },
+    { id:'C3', name:'ジュニアB', gmin:5,  gmax:6,  events:'ボール', tmin:5, tmax:6 },
+    { id:'C4', name:'ジュニアA', gmin:7,  gmax:9,  events:'クラブ', tmin:5, tmax:6 },
+    { id:'C5', name:'シニア',    gmin:10, gmax:13, events:'リボン', tmin:5, tmax:6 }
+  ],
+  orgs: [
+    { id:'O1', name:'デモ新体操クラブ', rep:'山田 花子', email:'demo@example.com',
+      pass:'demo1234', status:'draft', totalFee:null, confirmedAt:null }
+  ],
+  players: [
+    { id:'P1', orgId:'O1', name:'佐藤 美咲', kana:'サトウ ミサキ', grade:4, individual:true },
+    { id:'P2', orgId:'O1', name:'鈴木 結衣', kana:'スズキ ユイ',   grade:4, individual:false },
+    { id:'P3', orgId:'O1', name:'高橋 芽依', kana:'タカハシ メイ', grade:3, individual:true },
+    { id:'P4', orgId:'O1', name:'田中 心春', kana:'タナカ コハル', grade:3, individual:false },
+    { id:'P5', orgId:'O1', name:'伊藤 陽菜', kana:'イトウ ヒナ',   grade:4, individual:false },
+    { id:'P6', orgId:'O1', name:'渡辺 咲良', kana:'ワタナベ サクラ', grade:3, individual:false }
+  ],
+  teams: [],
+  notices: [
+    { id:'N1', orgId:'O1', at:'2026-07-01 10:00', msg:'アカウント登録が完了しました。エントリー締切は8月31日です。', read:true }
+  ],
+  seq: 100
+};
+const nid = p => p + (++mockDB.seq);
+const catOf = grade => mockDB.categories.find(c => grade>=c.gmin && grade<=c.gmax) || null;
+
+/* =========================================================
+   API層 — フロントは常に api(action, payload) だけを呼ぶ。
+   MOCK=false のとき GAS doPost(text/plain) に切り替わる。
+   ========================================================= */
+async function api(action, payload = {}) {
+  if (CONFIG.MOCK) {
+    await new Promise(r => setTimeout(r, 150)); // 通信の雰囲気
+    return mockApi(action, payload);
+  }
+  const res = await fetch(CONFIG.GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' }, // CORSプリフライト回避
+    body: JSON.stringify({ action, token: state.token, ...payload })
+  });
+  return res.json();
+}
+
+function mockApi(action, p) {
+  const org = () => mockDB.orgs.find(o => o.id === state.orgId);
+  const locked = () => org() && org().status === 'confirmed';
+  const snapshot = () => {
+    const o = org();
+    return { ok:true, org:{ id:o.id, name:o.name, rep:o.rep, email:o.email, status:o.status, totalFee:o.totalFee, confirmedAt:o.confirmedAt },
+      players: mockDB.players.filter(x=>x.orgId===o.id),
+      teams: mockDB.teams.filter(x=>x.orgId===o.id),
+      notices: mockDB.notices.filter(x=>x.orgId===o.id).slice().reverse(),
+      categories: mockDB.categories, settings: mockDB.settings };
+  };
+
+  switch (action) {
+    case 'register': {
+      if (p.code !== mockDB.settings.eventCode) return { ok:false, error:'大会コードが正しくありません。' };
+      if (!p.org || !p.email || (p.pass||'').length < 8) return { ok:false, error:'入力内容を確認してください(パスワードは8文字以上)。' };
+      if (mockDB.orgs.some(o=>o.email===p.email)) return { ok:false, error:'このメールアドレスは登録済みです。' };
+      const o = { id:nid('O'), name:p.org, rep:p.rep, email:p.email, pass:p.pass, status:'draft', totalFee:null, confirmedAt:null };
+      mockDB.orgs.push(o);
+      mockDB.notices.push({ id:nid('N'), orgId:o.id, at:now(), msg:'アカウント登録が完了しました。(登録完了メールを送信しました ※モック)', read:false });
+      return { ok:true, token:'tok_'+o.id, orgId:o.id };
+    }
+    case 'login': {
+      const o = mockDB.orgs.find(x=>x.email===p.email && x.pass===p.pass);
+      if (!o) return { ok:false, error:'メールアドレスまたはパスワードが違います。' };
+      return { ok:true, token:'tok_'+o.id, orgId:o.id };
+    }
+    case 'resetPassword':
+      return { ok:true, msg:'仮パスワードをメールで送信しました。(モックのため実際には demo1234 のままです)' };
+    case 'changePassword': {
+      if ((p.pass||'').length < 8) return { ok:false, error:'8文字以上にしてください。' };
+      org().pass = p.pass; return { ok:true };
+    }
+    case 'getMyPage': return snapshot();
+    case 'addPlayer': {
+      if (locked()) return { ok:false, error:'確定済みのため変更できません。' };
+      mockDB.players.push({ id:nid('P'), orgId:state.orgId, name:p.name, kana:p.kana, grade:p.grade, individual:false });
+      return snapshot();
+    }
+    case 'updatePlayer': {
+      if (locked()) return { ok:false, error:'確定済みのため変更できません。' };
+      Object.assign(mockDB.players.find(x=>x.id===p.id), p.patch);
+      return snapshot();
+    }
+    case 'deletePlayer': {
+      if (locked()) return { ok:false, error:'確定済みのため変更できません。' };
+      if (mockDB.teams.some(t=>t.orgId===state.orgId && t.members.includes(p.id)))
+        return { ok:false, error:'チームに所属している選手です。先にチームから外してください。' };
+      mockDB.players = mockDB.players.filter(x=>x.id!==p.id);
+      return snapshot();
+    }
+    case 'addTeam': {
+      if (locked()) return { ok:false, error:'確定済みのため変更できません。' };
+      const cat = mockDB.categories.find(c=>c.id===p.catId);
+      if (!p.name) return { ok:false, error:'チーム名を入力してください。' };
+      if (p.members.length < cat.tmin || p.members.length > cat.tmax)
+        return { ok:false, error:`${cat.name}のメンバーは${cat.tmin}〜${cat.tmax}名です。` };
+      mockDB.teams.push({ id:nid('T'), orgId:state.orgId, name:p.name, catId:p.catId, members:p.members });
+      return snapshot();
+    }
+    case 'deleteTeam': {
+      if (locked()) return { ok:false, error:'確定済みのため変更できません。' };
+      mockDB.teams = mockDB.teams.filter(x=>x.id!==p.id);
+      return snapshot();
+    }
+    case 'confirmEntry': {
+      if (locked()) return { ok:false, error:'すでに確定済みです。' };
+      const o = org();
+      const ids = entryPlayerIds(mockDB.players.filter(x=>x.orgId===o.id), mockDB.teams.filter(x=>x.orgId===o.id));
+      if (ids.size === 0) return { ok:false, error:'エントリー選手がいません。個人出場かチームを登録してください。' };
+      const fee = ids.size * mockDB.settings.feePerPlayer;
+      o.status = 'confirmed'; o.totalFee = fee; o.confirmedAt = now();
+      const s = mockDB.settings;
+      mockDB.notices.push({ id:nid('N'), orgId:o.id, at:now(), read:false,
+        msg:`エントリーを確定しました。参加費 ¥${fee.toLocaleString()}(${ids.size}名 × ¥${s.feePerPlayer.toLocaleString()})を ${s.payDeadline} までにお振込みください。振込先はマイページに記載しています。(確定メールを送信しました ※モック)` });
+      return snapshot();
+    }
+    case 'markRead': {
+      mockDB.notices.forEach(n => { if (n.orgId===state.orgId) n.read = true; });
+      return snapshot();
+    }
+  }
+  return { ok:false, error:'不明なアクションです。' };
+}
+const now = () => new Date().toLocaleString('ja-JP',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+
+/* エントリー選手のユニークID集合(個人出場 + 全チームメンバー) */
+function entryPlayerIds(players, teams) {
+  const s = new Set(players.filter(p=>p.individual).map(p=>p.id));
+  teams.forEach(t => t.members.forEach(id => s.add(id)));
+  return s;
+}
+
+/* =========================================================
+   画面制御
+   ========================================================= */
+const state = { token:null, orgId:null, data:null, view:'players' };
+const $ = id => document.getElementById(id);
+
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+function switchGate(m){ $('gate-login').classList.toggle('hidden',m!=='login'); $('gate-reg').classList.toggle('hidden',m!=='reg'); }
+
+async function doLogin(){
+  const r = await api('login',{ email:$('li-email').value.trim(), pass:$('li-pass').value });
+  if(!r.ok){ $('li-err').textContent = r.error; return; }
+  state.token=r.token; state.orgId=r.orgId; enterApp();
+}
+async function doRegister(){
+  const r = await api('register',{ code:$('rg-code').value.trim(), org:$('rg-org').value.trim(), rep:$('rg-rep').value.trim(), email:$('rg-email').value.trim(), pass:$('rg-pass').value });
+  if(!r.ok){ $('rg-err').textContent = r.error; return; }
+  state.token=r.token; state.orgId=r.orgId; toast('登録が完了しました'); enterApp();
+}
+async function doReset(){
+  const r = await api('resetPassword',{ email:$('li-email').value.trim() });
+  toast(r.msg || '送信しました');
+}
+function logout(){ state.token=null; state.orgId=null; $('screen-app').classList.add('hidden'); $('screen-gate').classList.remove('hidden'); }
+
+async function enterApp(){
+  const r = await api('getMyPage');
+  state.data = r;
+  $('screen-gate').classList.add('hidden');
+  $('screen-app').classList.remove('hidden');
+  buildGradeSelect(); go('players');
+}
+async function refresh(res){
+  state.data = res && res.ok ? res : await api('getMyPage');
+  renderAll();
+}
+
+function go(v){ state.view=v; renderAll(); window.scrollTo({top:0}); }
+
+function renderAll(){
+  const d = state.data; if(!d) return;
+  const locked = d.org.status==='confirmed';
+  ['players','teams','confirm','mypage'].forEach(v=>{
+    $('view-'+v).classList.toggle('hidden', state.view!==v);
+    $('tab-'+v).classList.toggle('active', state.view===v);
+  });
+  $('hd-org').textContent = d.org.name + '(代表:' + d.org.rep + ')';
+  $('lock-banner').classList.toggle('hidden', !locked);
+  $('notice-badge').classList.toggle('hidden', !d.notices.some(n=>!n.read));
+  $('player-form-card').classList.toggle('hidden', locked);
+  $('team-form-card').classList.toggle('hidden', locked);
+  renderPlayers(); renderTeams(); renderConfirm(); renderMypage();
+  if(state.view==='mypage' && d.notices.some(n=>!n.read)) api('markRead').then(r=>{ state.data=r; $('notice-badge').classList.add('hidden'); });
+}
+
+/* ---------- 選手 ---------- */
+function buildGradeSelect(){
+  $('pl-grade').innerHTML = GRADES.map(g=>`<option value="${g.v}">${g.label}</option>`).join('');
+  $('pl-grade').onchange = previewCat; previewCat();
+}
+function previewCat(){
+  const c = catOf(Number($('pl-grade').value));
+  $('pl-cat-preview').textContent = c ? `カテゴリ: ${c.name}(個人種目: ${c.events})` : 'カテゴリ対象外の学年です';
+}
+async function addPlayer(){
+  const name=$('pl-name').value.trim(), kana=$('pl-kana').value.trim(), grade=Number($('pl-grade').value);
+  if(!name){ toast('氏名を入力してください'); return; }
+  const r = await api('addPlayer',{name,kana,grade});
+  if(!r.ok){ toast(r.error); return; }
+  $('pl-name').value=''; $('pl-kana').value='';
+  toast('選手を追加しました'); refresh(r);
+}
+function renderPlayers(){
+  const d=state.data, locked=d.org.status==='confirmed';
+  $('pl-count').textContent = `(${d.players.length}名)`;
+  $('player-list').innerHTML = d.players.length===0
+    ? '<p class="muted small">まだ選手が登録されていません。上のフォームから追加してください。</p>'
+    : d.players.map(p=>{
+      const c = catOf(p.grade);
+      return `<div class="list-item">
+        <div class="grow">
+          <div class="name">${esc(p.name)} <span class="muted small">${esc(p.kana||'')}</span></div>
+          <span class="pill">${gradeLabel(p.grade)}</span>
+          <span class="pill cat">${c?c.name+'・'+c.events:'—'}</span>
+        </div>
+        <label class="toggle"><input type="checkbox" ${p.individual?'checked':''} ${locked?'disabled':''}
+          onchange="togglePlayer('${p.id}',this.checked)"><span class="track"></span>個人出場</label>
+        ${locked?'':`<button class="btn danger-ghost" onclick="delPlayer('${p.id}')">削除</button>`}
+      </div>`;
+    }).join('');
+}
+async function togglePlayer(id,on){
+  const r = await api('updatePlayer',{id,patch:{individual:on}});
+  if(!r.ok){ toast(r.error); } refresh(r.ok?r:null);
+}
+async function delPlayer(id){
+  if(!confirm('この選手を削除しますか?')) return;
+  const r = await api('deletePlayer',{id});
+  if(!r.ok){ toast(r.error); return; }
+  toast('削除しました'); refresh(r);
+}
+
+/* ---------- 団体 ---------- */
+function renderTeamCatSelect(){
+  $('tm-cat').innerHTML = state.data.categories.map(c=>`<option value="${c.id}">${c.name}(${gradeLabel(c.gmin)}〜${gradeLabel(c.gmax)})</option>`).join('');
+}
+function renderTeamMemberPicker(){
+  const d=state.data, cat=d.categories.find(c=>c.id===$('tm-cat').value) || d.categories[0];
+  $('tm-rule').textContent = `${cat.tmin}〜${cat.tmax}名`;
+  const eligible = d.players.filter(p=>p.grade>=cat.gmin && p.grade<=cat.gmax);
+  $('tm-members').innerHTML = eligible.length===0
+    ? '<p class="muted small" style="margin-top:6px">このカテゴリに該当する学年の選手がいません。</p>'
+    : eligible.map(p=>`<label class="checkline"><input type="checkbox" value="${p.id}">${esc(p.name)}<span class="g">${gradeLabel(p.grade)}</span></label>`).join('');
+}
+async function addTeam(){
+  const members=[...document.querySelectorAll('#tm-members input:checked')].map(i=>i.value);
+  const r = await api('addTeam',{name:$('tm-name').value.trim(), catId:$('tm-cat').value, members});
+  if(!r.ok){ toast(r.error); return; }
+  $('tm-name').value=''; toast('チームを登録しました'); refresh(r);
+}
+async function delTeam(id){
+  if(!confirm('このチームを削除しますか?')) return;
+  const r = await api('deleteTeam',{id});
+  toast(r.ok?'削除しました':r.error); refresh(r.ok?r:null);
+}
+function renderTeams(){
+  const d=state.data, locked=d.org.status==='confirmed';
+  renderTeamCatSelect(); renderTeamMemberPicker();
+  $('team-list').innerHTML = d.teams.length===0
+    ? '<p class="muted small">まだチームがありません。団体に出場しない場合はこのままで構いません。</p>'
+    : d.teams.map(t=>{
+      const c=d.categories.find(x=>x.id===t.catId);
+      const names=t.members.map(id=>{const p=d.players.find(x=>x.id===id);return p?p.name:'?';}).join('、');
+      return `<div class="list-item">
+        <div class="grow">
+          <div class="name">${esc(t.name)}</div>
+          <span class="pill cat">${c.name}・${c.events}</span><span class="pill">${t.members.length}名</span>
+          <div class="muted small">${esc(names)}</div>
+        </div>
+        ${locked?'':`<button class="btn danger-ghost" onclick="delTeam('${t.id}')">削除</button>`}
+      </div>`;
+    }).join('');
+}
+
+/* ---------- 確認・確定 ---------- */
+function renderConfirm(){
+  const d=state.data, s=d.settings, locked=d.org.status==='confirmed';
+  const indiv=d.players.filter(p=>p.individual);
+  const ids=entryPlayerIds(d.players,d.teams);
+  const fee=ids.size*s.feePerPlayer;
+  $('confirm-summary').innerHTML = `
+    <div class="list-item"><div class="grow">個人出場</div><strong>${indiv.length}名</strong></div>
+    <div class="list-item"><div class="grow">団体チーム</div><strong>${d.teams.length}チーム</strong></div>
+    <div class="list-item"><div class="grow">エントリー選手(重複除く)</div><strong>${ids.size}名</strong></div>
+    <div class="list-item"><div class="grow muted small">エントリー締切</div><span class="small">${s.deadline}</span></div>`;
+  $('fee-amount').textContent = '¥'+fee.toLocaleString();
+  $('fee-formula').textContent = `${ids.size}名 × ¥${s.feePerPlayer.toLocaleString()}(選手1人あたり定額・個人団体重複は1回のみ)`;
+  $('confirm-btn').disabled = locked || ids.size===0;
+  $('confirm-btn').textContent = locked ? '確定済み' : 'エントリーを確定する';
+}
+async function confirmEntry(){
+  const d=state.data, ids=entryPlayerIds(d.players,d.teams);
+  const fee=ids.size*d.settings.feePerPlayer;
+  if(!confirm(`エントリーを確定します。\n参加費: ¥${fee.toLocaleString()}(${ids.size}名)\n確定後は変更できません。よろしいですか?`)) return;
+  const r = await api('confirmEntry');
+  if(!r.ok){ toast(r.error); return; }
+  toast('エントリーを確定しました'); state.data=r; go('mypage');
+}
+
+/* ---------- マイページ ---------- */
+function renderMypage(){
+  const d=state.data, s=d.settings, o=d.org;
+  $('mp-account').textContent = `${o.email} / ${o.name}`;
+  if(o.status==='confirmed'){
+    $('mypage-status').innerHTML = `
+      <h2>参加費のご案内</h2>
+      <p class="small">エントリー確定日時: ${o.confirmedAt}</p>
+      <div class="fee-box"><div class="muted small">確定参加費</div>
+        <div class="yen">¥${o.totalFee.toLocaleString()}</div>
+        <div class="formula">お振込期限: ${s.payDeadline}</div></div>
+      <dl class="bank">
+        <dt>振込先</dt><dd>${s.bank.name} ${s.bank.branch}</dd>
+        <dt>口座</dt><dd>${s.bank.type} ${s.bank.number}</dd>
+        <dt>名義</dt><dd>${s.bank.holder}</dd>
+      </dl>
+      <p class="muted small" style="margin-top:10px">※振込名義の先頭に団体名をご記入ください。</p>`;
+  } else {
+    $('mypage-status').innerHTML = `
+      <h2>エントリー状況</h2>
+      <p class="small">現在のステータス: <span class="pill">未確定</span></p>
+      <p class="muted small">「確認・確定」タブからエントリーを確定すると、参加費と振込先がここに表示されます。</p>`;
+  }
+  $('notice-list').innerHTML = d.notices.length===0
+    ? '<p class="muted small">お知らせはまだありません。</p>'
+    : d.notices.map(n=>`<div class="notice ${n.read?'':'unread'}"><div class="t">${n.at}</div><div class="m">${esc(n.msg)}</div></div>`).join('');
+}
+async function changePassword(){
+  const r = await api('changePassword',{pass:$('cp-pass').value});
+  if(!r.ok){ toast(r.error); return; }
+  $('cp-pass').value=''; toast('パスワードを変更しました');
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+</body>
+</html>
